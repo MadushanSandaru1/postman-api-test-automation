@@ -1,0 +1,54 @@
+name: Swagger Petstore API Tests
+
+# Trigger the workflow on push or pull request events to the main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    # Use the latest version of Ubuntu as the runner
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Check out the repository to the runner
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Node.js environment, required to install and run Newman
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'  # Specify Node.js version
+
+    # Step 3: Install Newman globally via npm (Newman is the CLI tool for Postman)
+    - name: Install Newman
+      run: npm install -g newman
+
+    # Step 4: Run the Postman collection using Newman
+    - name: Run Swagger Petstore Postman Collection
+      run: |
+        # Execute the Postman collection file with Newman
+        # Generate reports in CLI, JSON, and HTML formats
+        newman run 'Swagger Petstore.postman_collection.json' \
+          --reporters cli,json,html \
+          --reporter-json-export newman/newman-report.json \
+          --reporter-html-export newman/newman-report.html
+
+    # Step 5: Upload the HTML report as an artifact for easy download
+    - name: Upload Newman Report (HTML)
+      uses: actions/upload-artifact@v2
+      with:
+        name: newman-html-report  # Name of the artifact
+        path: newman/newman-report.html  # Path to the HTML report file
+
+    # Step 6: Upload the JSON report as an artifact for easy download
+    - name: Upload Newman Report (JSON)
+      uses: actions/upload-artifact@v2
+      with:
+        name: newman-json-report  # Name of the artifact
+        path: newman/newman-report.json  # Path to the JSON report file
